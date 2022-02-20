@@ -9,7 +9,7 @@ const bundleDrop = sdk.getBundleDropModule(
   try {
     await bundleDrop.createBatch([
       {
-        name: "Leaf Village Headband",
+        name: "Baby Goat",
         description: "This NFT will give you access to Dope Goat DAO!",
         image: readFileSync("scripts/assets/memberGoat.png"),
       },

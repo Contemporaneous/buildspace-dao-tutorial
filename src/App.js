@@ -61,6 +61,15 @@ const App = () => {
             </button>
         </div>
         );
+    }
+
+    if (hasClaimedNFT) {
+      return (
+        <div className="member-page">
+          <h1>Dope Goat DAO Member Page</h1>
+          <p>Congratulations on being a member</p>
+        </div>
+      );
     };
 
     const mintNft = async () => {

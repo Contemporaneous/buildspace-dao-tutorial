@@ -119,8 +119,12 @@ const App = () => {
         // A simple call to voteModule.getAll() to grab the proposals.
         try {
           const proposals = await voteModule.getAll();
-          setProposals(proposals);
-          console.log("🌈 Proposals:", proposals);
+          
+          //Get active proposals
+          const activeProposals = proposals.filter(proposal => proposal.status === "active");
+
+          setProposals(activeProposals);
+          console.log("🌈 Proposals:", activeProposals);
         } catch (error) {
           console.log("failed to get proposals", error);
         }

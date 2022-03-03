@@ -156,6 +156,34 @@ const App = () => {
       }
     }, [hasClaimedNFT, proposals, address]);
 
+
+    const renderProposalForm = () => {
+      const proposalTypes = ["Mint","Donate"];
+
+      return (
+        <div>
+          <h2>Submit a New Proposal</h2>
+          <div className="card">
+            {proposalTypes.map((proposalType) => (
+              <div key={proposalType}>
+                <input
+                  type="radio"
+                  id={proposalType}
+                  name={proposalType}
+                  value={proposalType}
+                  //default the "abstain" vote to chedked
+                  defaultChecked={proposalType==="mint"}
+                />  
+                <label htmlFor={proposalType}>
+                  {proposalType}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
     if (error instanceof UnsupportedChainIdError ) {
       return (
         <div className="unsupported-network">
@@ -331,9 +359,12 @@ const App = () => {
               </form>
             </div>
           </div>
+          <div>
+            {renderProposalForm()}
+          </div>
         </div>
-      );
-    };
+      )
+    }
     
 
     const mintNft = async () => {

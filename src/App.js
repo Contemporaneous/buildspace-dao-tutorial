@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ThirdwebSDK } from "@3rdweb/sdk";
+import { ThirdwebSDK, ProposalState } from "@3rdweb/sdk";
 import { useWeb3 } from "@3rdweb/hooks";
 import { ethers } from "ethers";
 import { UnsupportedChainIdError } from "@web3-react/core";
@@ -126,7 +126,7 @@ const App = () => {
           const proposals = await voteModule.getAll();
           
           //Get active proposals
-          const activeProposals = proposals.filter(proposal => proposal.status === "active");
+          const activeProposals = proposals.filter(proposal => proposal.state === ProposalState.Active);
 
           setProposals(activeProposals);
           console.log("🌈 Proposals:", activeProposals);

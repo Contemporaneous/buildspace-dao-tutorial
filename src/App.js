@@ -33,6 +33,7 @@ const App = () => {
     const [memberAddresses, setMemberAddresses] = useState([]);
     const [proposals, setProposals] = useState([]);
     const [forExecution, setForExecution] = useState([]);
+    const [isExecuting, setIsExecuting] = useState(false);
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -280,6 +281,28 @@ const App = () => {
       return (
       <div>
         <h2>Proposals For Execution</h2>
+        {forExecution.map((proposal, index) => (
+          <div key={proposal.proposalId} className="card">
+            <h5>{proposal.description}</h5>
+            <div>
+              <button onClick={ async ()=>{
+                setIsExecuting(true);
+                try{
+                  voteModule.execute(proposal.proposalId)
+                } catch (error) {
+                  console.log("failed to execute", error);
+                }finally{
+                  setIsExecuting(false);
+                }
+                
+              }} type="submit">
+                {
+                  isExecuting ? "Executing..." : "Execute"
+                }
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
       )
     }

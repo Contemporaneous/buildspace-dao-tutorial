@@ -35,6 +35,7 @@ const App = () => {
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmittingMint, setIsSubmittingMint] = useState(true);
 
     const shortenAddress = (str) => {
       return str.substring(0, 6) + "..." + str.substring(str.length - 4);
@@ -161,6 +162,23 @@ const App = () => {
 
     }
 
+    const renderProposalOptionals = () => {
+      if (isSubmittingMint) {
+        return (
+          <div>
+            <input type="text" placeholder="Amount" />
+          </div>
+        );
+      }else {
+        return (
+          <div>
+            <input type="text" placeholder="Address" />
+            <input type="text" placeholder="Amount" />
+          </div>
+        );
+      }
+    }
+
 
     const renderProposalForm = () => {
       const proposalTypes = ["Mint","Donate"];
@@ -180,6 +198,7 @@ const App = () => {
                       value={proposalType}
                       //default the "abstain" vote to chedked
                       defaultChecked={proposalType==="Mint"}
+                      onChange={(e)=>{setIsSubmittingMint(e.target.value==="Mint")}}
                     />  
                     <label htmlFor={proposalType}>
                       {proposalType}
@@ -187,9 +206,13 @@ const App = () => {
                   </div>
                 ))}
                 <div>
-                  <input type="text" placeholder="Proposal Title" />
+                  <input type="text" placeholder="Proposal Text" />
                 </div>
               </div>
+              <div>
+                {renderProposalOptionals()} 
+              </div>
+
               <button disabled={isSubmitting} type="submit">
                   {isSubmitting
                     ? "Submitting Proposal..."

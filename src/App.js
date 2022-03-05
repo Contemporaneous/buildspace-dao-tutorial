@@ -36,6 +36,9 @@ const App = () => {
     const [hasVoted, setHasVoted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmittingMint, setIsSubmittingMint] = useState(true);
+    const [proposalName, setProposalName] = useState("");
+    const [proposalValue, setProposalValue] = useState("");
+    const [proposalAddress, setProposalAddress] = useState("");
 
     const shortenAddress = (str) => {
       return str.substring(0, 6) + "..." + str.substring(str.length - 4);
@@ -159,21 +162,66 @@ const App = () => {
     }, [hasClaimedNFT, proposals, address]);
 
     const submitNewProposal = async (e) => {
-
+      e.preventDefault();
+      e.stopPropagation();
+      setIsSubmitting(true);
+      try {
+        if (isSubmittingMint) {
+          await voteModule.propose(
+            proposalName,
+            [
+              {
+                nativeTokenValue: 0,
+                transactionData: tokenModule.contract.interface.encodeFunctionData(
+                  "mint",
+                  [
+                    voteModule.address,
+                    ethers.utils.parseUnits(proposalValue, 18),
+                  ]
+                ),
+                toAddress: tokenModule.address,
+              },
+            ]
+          );
+        } else {
+          await voteModule.propose(
+            proposalName,
+            [
+              {
+                nativeTokenValue: 0,
+                transactionData: tokenModule.contract.interface.encodeFunctionData(
+                  // We're doing a transfer from the treasury to our wallet.
+                  "transfer",
+                  [
+                    proposalAddress,
+                    ethers.utils.parseUnits(proposalValue, 18),
+                  ]
+                ),
+                toAddress: tokenModule.address,
+              },
+            ]
+          );
+        }
+      } catch (error) {
+        console.log("failed to propose", error);
+      }
+      finally{
+        setIsSubmitting(false);
+      }
     }
 
     const renderProposalOptionals = () => {
       if (isSubmittingMint) {
         return (
           <div>
-            <input type="text" placeholder="Amount" />
+            <input type="text" placeholder="Amount" onChange={(e)=>{setProposalValue(e.target.value)}} />
           </div>
         );
       }else {
         return (
           <div>
-            <input type="text" placeholder="Address" />
-            <input type="text" placeholder="Amount" />
+            <input type="text" placeholder="Address" onChange={(e)=>{setProposalAddress(e.target.value)}}/>
+            <input type="text" placeholder="Amount" onChange={(e)=>{setProposalValue(e.target.value)}}/>
           </div>
         );
       }
@@ -186,7 +234,7 @@ const App = () => {
       return (
         <div>
           <h2>Submit a New Proposal</h2>
-          <form onSubmit={submitNewProposal}>
+          <form onSubmit={(e)=>{submitNewProposal(e)}}>
             <div className="card">
               <div>
                 {proposalTypes.map((proposalType) => (
@@ -196,7 +244,7 @@ const App = () => {
                       id={"ProposalType-"+proposalType}
                       name={"ProposalType"}
                       value={proposalType}
-                      //default the "abstain" vote to chedked
+                      //default the "abstain" vote to checked
                       defaultChecked={proposalType==="Mint"}
                       onChange={(e)=>{setIsSubmittingMint(e.target.value==="Mint")}}
                     />  
@@ -206,7 +254,7 @@ const App = () => {
                   </div>
                 ))}
                 <div>
-                  <input type="text" placeholder="Proposal Text" />
+                  <input type="text" placeholder="Proposal Text" onChange={(e)=>{setProposalName(e.target.value)}} />
                 </div>
               </div>
               <div>
@@ -216,7 +264,7 @@ const App = () => {
               <button disabled={isSubmitting} type="submit">
                   {isSubmitting
                     ? "Submitting Proposal..."
-                    : "Sibmit Proposal"}
+                    : "Submit Proposal"}
                 </button>
             </div>
           </form>

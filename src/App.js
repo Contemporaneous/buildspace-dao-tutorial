@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ThirdwebSDK } from "@3rdweb/sdk";
+import { ThirdwebSDK, ProposalState } from "@3rdweb/sdk";
 import { useWeb3 } from "@3rdweb/hooks";
 import { ethers } from "ethers";
 import { UnsupportedChainIdError } from "@web3-react/core";
@@ -34,6 +34,11 @@ const App = () => {
     const [proposals, setProposals] = useState([]);
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmittingMint, setIsSubmittingMint] = useState(true);
+    const [proposalName, setProposalName] = useState("");
+    const [proposalValue, setProposalValue] = useState("");
+    const [proposalAddress, setProposalAddress] = useState("");
 
     const shortenAddress = (str) => {
       return str.substring(0, 6) + "..." + str.substring(str.length - 4);
@@ -121,7 +126,7 @@ const App = () => {
           const proposals = await voteModule.getAll();
           
           //Get active proposals
-          const activeProposals = proposals.filter(proposal => proposal.status === "active");
+          const activeProposals = proposals.filter(proposal => proposal.state === ProposalState.Active);
 
           setProposals(activeProposals);
           console.log("🌈 Proposals:", activeProposals);
@@ -155,6 +160,117 @@ const App = () => {
         console.error("Failed to check if wallet has voted", error);
       }
     }, [hasClaimedNFT, proposals, address]);
+
+    const submitNewProposal = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsSubmitting(true);
+      try {
+        if (isSubmittingMint) {
+          await voteModule.propose(
+            proposalName,
+            [
+              {
+                nativeTokenValue: 0,
+                transactionData: tokenModule.contract.interface.encodeFunctionData(
+                  "mint",
+                  [
+                    voteModule.address,
+                    ethers.utils.parseUnits(proposalValue, 18),
+                  ]
+                ),
+                toAddress: tokenModule.address,
+              },
+            ]
+          );
+        } else {
+          await voteModule.propose(
+            proposalName,
+            [
+              {
+                nativeTokenValue: 0,
+                transactionData: tokenModule.contract.interface.encodeFunctionData(
+                  // We're doing a transfer from the treasury to our wallet.
+                  "transfer",
+                  [
+                    proposalAddress,
+                    ethers.utils.parseUnits(proposalValue, 18),
+                  ]
+                ),
+                toAddress: tokenModule.address,
+              },
+            ]
+          );
+        }
+      } catch (error) {
+        console.log("failed to propose", error);
+      }
+      finally{
+        setIsSubmitting(false);
+      }
+    }
+
+    const renderProposalOptionals = () => {
+      if (isSubmittingMint) {
+        return (
+          <div>
+            <input type="text" placeholder="Amount" onChange={(e)=>{setProposalValue(e.target.value)}} />
+          </div>
+        );
+      }else {
+        return (
+          <div>
+            <input type="text" placeholder="Address" onChange={(e)=>{setProposalAddress(e.target.value)}}/>
+            <input type="text" placeholder="Amount" onChange={(e)=>{setProposalValue(e.target.value)}}/>
+          </div>
+        );
+      }
+    }
+
+
+    const renderProposalForm = () => {
+      const proposalTypes = ["Mint","Donate"];
+
+      return (
+        <div>
+          <h2>Submit a New Proposal</h2>
+          <form onSubmit={(e)=>{submitNewProposal(e)}}>
+            <div className="card">
+              <div>
+                {proposalTypes.map((proposalType) => (
+                  <div key={proposalType}>
+                    <input
+                      type="radio"
+                      id={"ProposalType-"+proposalType}
+                      name={"ProposalType"}
+                      value={proposalType}
+                      //default the "abstain" vote to checked
+                      defaultChecked={proposalType==="Mint"}
+                      onChange={(e)=>{setIsSubmittingMint(e.target.value==="Mint")}}
+                    />  
+                    <label htmlFor={proposalType}>
+                      {proposalType}
+                    </label>
+                  </div>
+                ))}
+                <div>
+                  <input type="text" placeholder="Proposal Text" onChange={(e)=>{setProposalName(e.target.value)}} />
+                </div>
+              </div>
+              <div>
+                {renderProposalOptionals()} 
+              </div>
+
+              <button disabled={isSubmitting} type="submit">
+                  {isSubmitting
+                    ? "Submitting Proposal..."
+                    : "Submit Proposal"}
+                </button>
+            </div>
+          </form>
+        </div>
+      )
+    }
 
     if (error instanceof UnsupportedChainIdError ) {
       return (
@@ -331,9 +447,12 @@ const App = () => {
               </form>
             </div>
           </div>
+          <div>
+            {renderProposalForm()}
+          </div>
         </div>
-      );
-    };
+      )
+    }
     
 
     const mintNft = async () => {

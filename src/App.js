@@ -32,6 +32,7 @@ const App = () => {
     const [memberTokenAmounts, setMemberTokenAmounts] = useState({});
     const [memberAddresses, setMemberAddresses] = useState([]);
     const [proposals, setProposals] = useState([]);
+    const [forExecution, setForExecution] = useState([]);
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -127,9 +128,12 @@ const App = () => {
           
           //Get active proposals
           const activeProposals = proposals.filter(proposal => proposal.state === ProposalState.Active);
+          const readyForExecution = proposals.filter(proposal => proposal.state === ProposalState.Succeeded);
 
           setProposals(activeProposals);
+          setForExecution(readyForExecution);
           console.log("🌈 Proposals:", activeProposals);
+          console.log("🌈 Ready for execution:", readyForExecution);
         } catch (error) {
           console.log("failed to get proposals", error);
         }
@@ -269,6 +273,14 @@ const App = () => {
             </div>
           </form>
         </div>
+      )
+    }
+
+    const renderExecutions = () => {
+      return (
+      <div>
+        <h2>Proposals For Execution</h2>
+      </div>
       )
     }
 
@@ -449,6 +461,7 @@ const App = () => {
           </div>
           <div>
             {renderProposalForm()}
+            {renderExecutions()}
           </div>
         </div>
       )

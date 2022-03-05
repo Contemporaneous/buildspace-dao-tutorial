@@ -34,6 +34,7 @@ const App = () => {
     const [proposals, setProposals] = useState([]);
     const [isVoting, setIsVoting] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const shortenAddress = (str) => {
       return str.substring(0, 6) + "..." + str.substring(str.length - 4);
@@ -156,6 +157,10 @@ const App = () => {
       }
     }, [hasClaimedNFT, proposals, address]);
 
+    const submitNewProposal = async (e) => {
+
+    }
+
 
     const renderProposalForm = () => {
       const proposalTypes = ["Mint","Donate"];
@@ -163,23 +168,35 @@ const App = () => {
       return (
         <div>
           <h2>Submit a New Proposal</h2>
-          <div className="card">
-            {proposalTypes.map((proposalType) => (
-              <div key={proposalType}>
-                <input
-                  type="radio"
-                  id={proposalType}
-                  name={proposalType}
-                  value={proposalType}
-                  //default the "abstain" vote to chedked
-                  defaultChecked={proposalType==="mint"}
-                />  
-                <label htmlFor={proposalType}>
-                  {proposalType}
-                </label>
+          <form onSubmit={submitNewProposal}>
+            <div className="card">
+              <div>
+                {proposalTypes.map((proposalType) => (
+                  <div key={proposalType}>
+                    <input
+                      type="radio"
+                      id={"ProposalType-"+proposalType}
+                      name={"ProposalType"}
+                      value={proposalType}
+                      //default the "abstain" vote to chedked
+                      defaultChecked={proposalType==="Mint"}
+                    />  
+                    <label htmlFor={proposalType}>
+                      {proposalType}
+                    </label>
+                  </div>
+                ))}
+                <div>
+                  <input type="text" placeholder="Proposal Title" />
+                </div>
               </div>
-            ))}
-          </div>
+              <button disabled={isSubmitting} type="submit">
+                  {isSubmitting
+                    ? "Submitting Proposal..."
+                    : "Sibmit Proposal"}
+                </button>
+            </div>
+          </form>
         </div>
       )
     }
